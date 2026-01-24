@@ -1,6 +1,6 @@
-def lambda_handler(event, context):
-    print("Evento recebido:", event)
-    return {
-        "statusCode": 200,
-        "body": "Lambda processamentodadostcc executada com sucesso!"
-    }
+import boto3 
+import csv
+
+
+def lambda_handler():
+    pass

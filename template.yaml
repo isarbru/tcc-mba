@@ -1,6 +1,16 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Resources:
+  DadosEntradaBucket: 
+    Type: AWS::S3::Bucket 
+    Properties: 
+      BucketName: dadosentrada
+
+  DadosSaidaBucket: 
+    Type: AWS::S3::Bucket 
+    Properties: 
+      BucketName: dadossaida
+  
   LambdaExecutionRole:
     Type: AWS::IAM::Role
     Properties:
@@ -13,12 +23,27 @@ Resources:
             Action: sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-        - arn:aws:iam::aws:policy/AmazonS3FullAccess
         - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
+      Policies: 
+        - PolicyName: S3AccessPolicy
+          PolicyDocument: 
+            Version: "2012-10-17" 
+            Statement: 
+              - Effect: Allow 
+                Action: 
+                  - s3:ListBucket 
+                  - s3:GetObject 
+                  - s3:PutObject 
+                Resource: 
+                  - !Sub arn:aws:s3:::${DadosEntradaBucket} 
+                  - !Sub arn:aws:s3:::${DadosEntradaBucket}/* 
+                  - !Sub arn:aws:s3:::${DadosSaidaBucket} 
+                  - !Sub arn:aws:s3:::${DadosSaidaBucket}/*
 
   ProcessamentoDadosTCC:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: processamentodadostcc
       Handler: lambda_function.lambda_handler
       Runtime: python3.13
       MemorySize: 128
