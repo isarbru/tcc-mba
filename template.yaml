@@ -45,12 +45,14 @@ Resources:
     Properties:
       FunctionName: processamentodadostcc
       Handler: lambda_function.lambda_handler
-      Runtime: python3.12
+      Runtime: python3.9   
       MemorySize: 512
       Timeout: 60
       Role: !GetAtt LambdaExecutionRole.Arn
+      Layers:
+        - arn:aws:lambda:us-east-1:336392948345:layer:AWSDataWrangler-Python39:1
       Events:
         DailyTrigger:
           Type: Schedule
           Properties:
-            Schedule: cron(0 9 * * ? *)   # 09:00 UTC = 06:00 BRT
+            Schedule: cron(0 9 * * ? *)   

@@ -16,10 +16,6 @@ jobs:
       - name: Limpar build antigo
         run: rm -rf .aws-sam/build
 
-      - name: Instalar dependências
-        run: |
-          pip install -r requirements.txt -t .
-
       - name: Configurar credenciais AWS
         uses: aws-actions/configure-aws-credentials@v4
         with:
