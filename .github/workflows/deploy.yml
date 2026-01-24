@@ -1,4 +1,4 @@
-name: Create and Deploy AWS Lambda
+name: Deploy AWS Lambda with EventBridge
 
 on:
   push:
@@ -25,18 +25,12 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      - name: Criar Lambda (se não existir)
+      - name: Deploy com SAM
         run: |
-          aws lambda get-function --function-name processamentodadostcc  || \
-          aws lambda create-function \
-            --function-name processamentodadostcc  \
-            --runtime python3.13 \
-            --role arn:aws:iam::797225460896:role/lambda-execution-role \
-            --handler lambda_function.lambda_handler \
-            --zip-file fileb://lambda.zip
-
-      - name: Atualizar código da Lambda
-        run: |
-          aws lambda update-function-code \
-            --function-name processamentodadostcc  \
-            --zip-file fileb://lambda.zip
+          sam deploy \
+            --template-file template.yaml \
+            --stack-name processamentodadostcc-stack \
+            --capabilities CAPABILITY_IAM \
+            --region us-east-1 \
+            --no-confirm-changeset \
+            --no-fail-on-empty-changeset
