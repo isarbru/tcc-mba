@@ -13,10 +13,12 @@ jobs:
       - name: Checkout código
         uses: actions/checkout@v3
 
-      - name: Instalar dependências e gerar ZIP
+      - name: Limpar build antigo
+        run: rm -rf .aws-sam/build
+
+      - name: Instalar dependências
         run: |
           pip install -r requirements.txt -t .
-          zip -r9 lambda.zip .
 
       - name: Configurar credenciais AWS
         uses: aws-actions/configure-aws-credentials@v4
@@ -24,6 +26,9 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
+
+      - name: Build SAM
+        run: sam build
 
       - name: Deploy com SAM
         run: |
