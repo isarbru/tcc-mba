@@ -4,12 +4,12 @@ Resources:
   DadosEntradaBucket: 
     Type: AWS::S3::Bucket 
     Properties: 
-      BucketName: dadosentrada
+      BucketName: !Sub "dadosentrada-${AWS::AccountId}-${AWS::Region}"
 
   DadosSaidaBucket: 
     Type: AWS::S3::Bucket 
     Properties: 
-      BucketName: dadossaida
+      BucketName: "dadossaida-${AWS::AccountId}-${AWS::Region}"
   
   LambdaExecutionRole:
     Type: AWS::IAM::Role
