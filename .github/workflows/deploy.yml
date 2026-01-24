@@ -13,6 +13,11 @@ jobs:
 
       - name: Limpar build antigo
         run: rm -rf .aws-sam/build
+      
+      - name: Instalar Python 3.9 
+        uses: actions/setup-python@v4 
+        with: 
+          python-version: '3.9'
 
       - name: Instalar dependências
         run: |
