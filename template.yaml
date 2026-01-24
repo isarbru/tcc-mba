@@ -9,18 +9,7 @@ Resources:
   DadosSaidaBucket: 
     Type: AWS::S3::Bucket 
     Properties: 
-      BucketName: "dadossaida-797225460896-us-east-1"
-  
-  PandasNumpyLayer:
-    Type: AWS::Lambda::LayerVersion
-    Properties:
-      LayerName: pandas-numpy-layer
-      Description: Layer com pandas e numpy
-      CompatibleRuntimes:
-        - python3.13
-      Content:
-        S3Bucket: pandasnumpylayer-797225460896   
-        S3Key: pandas_numpy_layer.zip.zip         
+      BucketName: "dadossaida-797225460896-us-east-1"     
 
   LambdaExecutionRole:
     Type: AWS::IAM::Role
@@ -60,8 +49,6 @@ Resources:
       MemorySize: 256
       Timeout: 60
       Role: !GetAtt LambdaExecutionRole.Arn
-      Layers:
-        - !Ref PandasNumpyLayer
       Events:
         DailyTrigger:
           Type: Schedule
