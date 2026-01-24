@@ -1,0 +1,42 @@
+name: Create and Deploy AWS Lambda
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v3
+
+      - name: Instalar dependências e gerar ZIP
+        run: |
+          pip install -r requirements.txt -t .
+          zip -r9 lambda.zip .
+
+      - name: Configurar credenciais AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Criar Lambda (se não existir)
+        run: |
+          aws lambda get-function --function-name processamentodadostcc  || \
+          aws lambda create-function \
+            --function-name processamentodadostcc  \
+            --runtime python3.13 \
+            --role arn:aws:iam::797225460896:role/lambda-execution-role \
+            --handler lambda_function.lambda_handler \
+            --zip-file fileb://lambda.zip
+
+      - name: Atualizar código da Lambda
+        run: |
+          aws lambda update-function-code \
+            --function-name processamentodadostcc  \
+            --zip-file fileb://lambda.zip
