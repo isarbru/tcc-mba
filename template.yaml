@@ -46,7 +46,7 @@ Resources:
       FunctionName: processamentodadostcc
       Handler: lambda_function.lambda_handler
       Runtime: python3.12
-      MemorySize: 256
+      MemorySize: 512
       Timeout: 60
       Role: !GetAtt LambdaExecutionRole.Arn
       Events:
