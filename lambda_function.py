@@ -5,7 +5,6 @@ def lambda_handler(event, context):
     bucket_in = "dadosentrada-797225460896-us-east-1"
     bucket_out = "dadossaida-797225460896-us-east-1"
 
-    # Lista arquivos CSV no bucket de entrada
     s3 = boto3.client("s3")
     response = s3.list_objects_v2(Bucket=bucket_in)
 
