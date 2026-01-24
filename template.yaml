@@ -6,10 +6,17 @@ Resources:
     Properties: 
       BucketName: !Sub "dadosentrada-797225460896-us-east-1"
 
-  DadosSaidaBucket: 
-    Type: AWS::S3::Bucket 
-    Properties: 
-      BucketName: "dadossaida-797225460896-us-east-1"     
+  NpsAlertTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: alerta-nps
+
+  NpsAlertSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Protocol: email
+      Endpoint: "isabelabruzinga@gmail.com"
+      TopicArn: !Ref NpsAlertTopic
 
   LambdaExecutionRole:
     Type: AWS::IAM::Role
@@ -37,8 +44,14 @@ Resources:
                 Resource: 
                   - !Sub arn:aws:s3:::${DadosEntradaBucket} 
                   - !Sub arn:aws:s3:::${DadosEntradaBucket}/* 
-                  - !Sub arn:aws:s3:::${DadosSaidaBucket} 
-                  - !Sub arn:aws:s3:::${DadosSaidaBucket}/*
+        - PolicyName: SNSPublishPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sns:Publish
+                Resource: !Ref NpsAlertTopic
 
   ProcessamentoDadosTCC:
     Type: AWS::Serverless::Function
@@ -49,8 +62,11 @@ Resources:
       MemorySize: 512
       Timeout: 60
       Role: !GetAtt LambdaExecutionRole.Arn
+      Environment:
+        Variables:
+          SNS_TOPIC_ARN: !Ref NpsAlertTopic
       Events:
         DailyTrigger:
           Type: Schedule
           Properties:
-            Schedule: cron(0 9 * * ? *)   
+            Schedule: cron(0 9 * * ? *)
