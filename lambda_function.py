@@ -1,55 +1,70 @@
 import awswrangler as wr
 import boto3
 import os
+from datetime import datetime, timedelta
 
-def lambda_handler(event, context):
-    bucket_in = "dadosentrada-797225460896-us-east-1"
-    sns_topic_arn = os.environ["SNS_TOPIC_ARN"]
+BUCKET_DADOS = "dadosentrada-797225460896-us-east-1"
+SNS_TOPIC = os.environ["SNS_TOPIC_ARN"]
 
-    s3 = boto3.client("s3")
-    sns = boto3.client("sns")
 
-    response = s3.list_objects_v2(Bucket=bucket_in)
-
+def le_dados():
+    try:
+        s3_client = boto3.client("s3")
+        response = s3_client.list_objects_v2(Bucket=BUCKET_DADOS)
+    except:
+        print("Erro na leitura de dados")
     if "Contents" in response:
         for obj in response["Contents"]:
             key = obj["Key"]
             print(f"Lendo arquivo: {key}")
-            input_path = f"s3://{bucket_in}/{key}"
+            input_path = f"s3://{BUCKET_DADOS}/{key}"
+            df = wr.s3.read_excel(path=input_path)
+        
+        return df
+    else:
+        print("Nenhum arquivo encontrado no bucket de entrada.")
+        return None
 
-            # Detecta se é Excel ou CSV
-            if key.endswith(".xlsx"):
-                df = wr.s3.read_excel(path=input_path)
-            else:
-                df = wr.s3.read_csv(path=input_path, sep=";", on_bad_lines="skip", encoding="latin1")
 
-            # Calcula NPS
-            total = len(df)
-            detratores = len(df[df["NPS"] <= 1])
-            neutros = len(df[(df["NPS"] >= 2) & (df["NPS"] <= 3)])
-            promotores = len(df[df["NPS"] >= 4])
+def tratativa_nps(dados):
+    total = len(dados)
+    baixo = len(dados[dados["metrica_nps"] <= 1])
+    medio = len(dados[(dados["metrica_nps"] >= 2) & (dados["metrica_nps"] <= 3)])
+    alto = len(dados[dados["metrica_nps"] >= 4])
+    data = datetime.now() - timedelta(days=1)
+    porcentagem_baixo = (baixo / total) * 100
+    porcentagem_medio = (medio / total) * 100
+    porcentagem_alto = (alto / total) * 100
+    nps = (porcentagem_baixo + porcentagem_medio +porcentagem_alto)/3
 
-            perc_detratores = (detratores / total) * 100
-            perc_promotores = (promotores / total) * 100
-            nps = perc_promotores - perc_detratores
+    message = (
+        f"Relatório de NPS da loja - {data.date()}\n\n"
+        f"Total de respostas: {total}\n"
+        f"Nota alta: {alto} ({porcentagem_alto:.1f}%)\n"
+        f"Nota média: {medio} ({porcentagem_medio:.1f}%)\n"
+        f"Nota baixa: {baixo} ({porcentagem_baixo:.1f}%)\n\n"
+        f"Média de satisfação: {nps:.1f}")
+    
+    return message
 
-            # Monta relatório
-            message = (
-                f"Relatório de NPS - Arquivo {key}\n\n"
-                f"Total de respostas: {total}\n"
-                f"Promotores: {promotores} ({perc_promotores:.1f}%)\n"
-                f"Neutros: {neutros}\n"
-                f"Detratores: {detratores} ({perc_detratores:.1f}%)\n\n"
-                f"NPS final: {nps:.1f}"
-            )
 
-            # Envia via SNS (e-mail)
-            sns.publish(
-                TopicArn=sns_topic_arn,
+def manda_email(message):
+    try:
+        sns_client = boto3.client("sns")
+        sns_client.publish(
+                TopicArn=SNS_TOPIC,
                 Message=message,
                 Subject="Relatório diário de NPS"
             )
 
-            print("Relatório enviado por e-mail.")
-    else:
-        print("Nenhum arquivo encontrado no bucket de entrada.")
+        print("Relatório enviado por e-mail.")
+    except:
+        print("Erro ao enviar relatório por email")
+
+
+def lambda_handler(event, context):
+    dados = le_dados()
+    if dados:
+        message = tratativa_nps(dados)
+        manda_email(message)
+        
