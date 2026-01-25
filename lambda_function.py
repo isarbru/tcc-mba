@@ -35,7 +35,7 @@ def tratativa_nps(dados):
     porcentagem_baixo = (baixo / total) * 100
     porcentagem_medio = (medio / total) * 100
     porcentagem_alto = (alto / total) * 100
-    nps = (porcentagem_baixo + porcentagem_medio +porcentagem_alto)/3
+    nps = ((total - baixo)/total) * 100
 
     message = (
         f"Relatório de NPS da loja - {data.date()}\n\n"
@@ -43,7 +43,7 @@ def tratativa_nps(dados):
         f"Nota alta: {alto} ({porcentagem_alto:.1f}%)\n"
         f"Nota média: {medio} ({porcentagem_medio:.1f}%)\n"
         f"Nota baixa: {baixo} ({porcentagem_baixo:.1f}%)\n\n"
-        f"Média de satisfação: {nps:.1f}")
+        f"Média de satisfação: {nps:.1f}%")
     
     return message
 
@@ -64,7 +64,6 @@ def manda_email(message):
 
 def lambda_handler(event, context):
     dados = le_dados()
-    if dados:
+    if dados is not None and not dados.empty:
         message = tratativa_nps(dados)
         manda_email(message)
-        
