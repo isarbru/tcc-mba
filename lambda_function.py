@@ -28,22 +28,27 @@ def le_dados():
 
 def tratativa_nps(dados):
     total = len(dados)
-    baixo = len(dados[dados["metrica_nps"] <= 1])
-    medio = len(dados[(dados["metrica_nps"] >= 2) & (dados["metrica_nps"] <= 3)])
-    alto = len(dados[dados["metrica_nps"] >= 4])
+
+    detratores = len(dados[dados["metrica_nps"] <= 6])
+    neutros = len(dados[(dados["metrica_nps"] >= 7) & (dados["metrica_nps"] <= 8)])
+    promotores = len(dados[dados["metrica_nps"] >= 9])
+
     data = datetime.now() - timedelta(days=1)
-    porcentagem_baixo = (baixo / total) * 100
-    porcentagem_medio = (medio / total) * 100
-    porcentagem_alto = (alto / total) * 100
-    nps = ((total - baixo)/total) * 100
+
+    porcentagem_detratores = (detratores / total) * 100
+    porcentagem_neutros = (neutros / total) * 100
+    porcentagem_promotores = (promotores / total) * 100
+
+    nps = porcentagem_promotores - porcentagem_detratores
 
     message = (
         f"Relatório de NPS da loja - {data.date()}\n\n"
         f"Total de respostas: {total}\n"
-        f"Nota alta: {alto} ({porcentagem_alto:.1f}%)\n"
-        f"Nota média: {medio} ({porcentagem_medio:.1f}%)\n"
-        f"Nota baixa: {baixo} ({porcentagem_baixo:.1f}%)\n\n"
-        f"Média de satisfação: {nps:.1f}%")
+        f"Promotores: {promotores} ({porcentagem_promotores:.1f}%)\n"
+        f"Neutros: {neutros} ({porcentagem_neutros:.1f}%)\n"
+        f"Detratores: {detratores} ({porcentagem_detratores:.1f}%)\n\n"
+        f"NPS: {nps:.1f}"
+    )
     
     return message
 
